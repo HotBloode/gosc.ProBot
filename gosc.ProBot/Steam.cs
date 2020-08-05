@@ -10,11 +10,16 @@ using System.Windows.Controls;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using System.Numerics;
+using System.Runtime.InteropServices;
+using System.Xml;
 
 namespace gosc.ProBot
 {
     class Steam
     {
+        [DllImport("wininet.dll", CharSet = CharSet.Auto, SetLastError = true)]
+        static extern bool InternetSetCookie(string lpszUrlName, string lpszCookieName, string lpszCookieData);
+
         List<String> statusList = new List<string>()
             {
             "Авторизация в Steam успешна",
@@ -33,6 +38,8 @@ namespace gosc.ProBot
         TextBlock statusBlock;
         List<Cookie> cookieList = new List<Cookie>();
         public static bool authorizationFlag = true;
+
+        public WebBrowser b;
 
         string Password;
         public string Login;
@@ -121,12 +128,23 @@ namespace gosc.ProBot
                 {
                     return;
                 }
+
+                string url = "https://steamcommunity.com/openid/login?openid.ns=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0&openid.mode=checkid_setup&openid.return_to=http%3A%2F%2Fgocs5pro.goid.fun%2Flogin%2Fsteam&openid.realm=http%3A%2F%2Fgocs5pro.goid.fun&openid.identity=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select&openid.claimed_id=http%3A%2F%2Fspecs.openid.net%2Fauth%2F2.0%2Fidentifier_select";
+               
+
+                for (int i = 0; i< cookieList.Count; i++)
+                InternetSetCookie("https://steamcommunity.com", null, cookieList[i].ToString());
+
+                b.Navigate(url);
+
+                int a = 0;
             }
             else
             {
                 if (await AuthorizationWithLogPass(password, login, code))
                 {
-                    AuthorizationWithCookie();
+                    await AuthorizationWithCookie();                  
+
                 }
                 else
                 {
@@ -232,7 +250,7 @@ namespace gosc.ProBot
                 Console.WriteLine(result);
 
                 //Сохраняем полученные Печеньки в json
-                File.WriteAllText("Cookes.json", JsonConvert.SerializeObject(cookieList, Formatting.Indented));
+                File.WriteAllText("Cookes.json", JsonConvert.SerializeObject(cookieList, Newtonsoft.Json.Formatting.Indented));
                 authorizationFlag = true;
                 outStatus(7);
                 return true;

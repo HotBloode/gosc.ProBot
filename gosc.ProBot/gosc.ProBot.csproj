@@ -35,6 +35,16 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="DialectSoftware.InteropServices, Version=1.0.0.0, Culture=neutral, PublicKeyToken=93561434a4be27bb, processorArchitecture=MSIL">
+      <HintPath>..\packages\DialectSoftware.Web.1.0.1\lib\DialectSoftware.InteropServices.dll</HintPath>
+    </Reference>
+    <Reference Include="DialectSoftware.Web, Version=1.0.1.0, Culture=neutral, PublicKeyToken=93561434a4be27bb, processorArchitecture=MSIL">
+      <HintPath>..\packages\DialectSoftware.Web.1.0.1\lib\DialectSoftware.Web.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.mshtml, Version=7.0.3300.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <HintPath>..\packages\DialectSoftware.Web.1.0.1\lib\Microsoft.mshtml.dll</HintPath>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
     <Reference Include="Newtonsoft.Json, Version=12.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.12.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>

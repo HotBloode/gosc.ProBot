@@ -20,6 +20,8 @@
         <Label Content="Log" HorizontalAlignment="Left" Margin="14,45,0,0" VerticalAlignment="Top" Height="29" Width="75" RenderTransformOrigin="0.545,0.25"/>
         <Label Content="Pass" HorizontalAlignment="Left" Margin="14,83,0,0" VerticalAlignment="Top" Height="30" Width="65" RenderTransformOrigin="0.468,0.75"/>
         <Label Content="Code" HorizontalAlignment="Left" Margin="14,118,0,0" VerticalAlignment="Top" Height="30" Width="65" RenderTransformOrigin="0.468,0.75"/>
-
+        
+        <WebBrowser x:Name="wb" HorizontalAlignment="Left" Height="171" Margin="14,153,0,0" VerticalAlignment="Top" Width="329" LoadCompleted="MyBrowser_OnLoadCompleted"/>
+        
     </Grid>
 </Window>

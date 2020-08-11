@@ -74,6 +74,32 @@ namespace gosc.ProBot
             client.DefaultRequestHeaders.Add("donotcache", "155524323");
         }
 
+
+        public async Task fAsync()
+        {
+            List<Cookie> co = new List<Cookie>();
+            co = JsonConvert.DeserializeObject<List<Cookie>>(File.ReadAllText("Cookes1.json"));
+            foreach (var v in co)
+            {               
+                cookieContainer.Add(new Uri(@"https://gocs5.pro"), v);
+            }
+
+            Dictionary<string, string> d = new Dictionary<string, string>();
+            d.Add("code", "R0CRLAXK");
+
+            //Отправка 2го запроса с нужными данными
+            request = await client.GetAsync($"https://gocs5.pro/bonus/wheel");
+
+
+           
+            //Получаем html страницу в ответ
+            result = await request.Content.ReadAsStringAsync();
+           
+
+            int a = 0;
+
+        }
+
         private async Task<bool> AuthorizationWithCookie()
         {
             //Вывод сообщения о работе

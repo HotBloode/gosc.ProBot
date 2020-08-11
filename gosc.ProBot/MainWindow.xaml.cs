@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using Newtonsoft.Json;
+using System.Xml;
 
 namespace gosc.ProBot
 {
@@ -30,6 +31,7 @@ namespace gosc.ProBot
 
         private const Int32 InternetCookieHttponly = 0x2000;
 
+        Steam steamAcc;
         public MainWindow()
         {
             InitializeComponent();
@@ -37,7 +39,7 @@ namespace gosc.ProBot
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            Steam steamAcc = new Steam(statusBlock);
+            steamAcc = new Steam(statusBlock);
             steamAcc.b = wb;
 
             dynamic activeX = wb.GetType().InvokeMember("ActiveXInstance",
@@ -45,9 +47,6 @@ namespace gosc.ProBot
                     null, wb, new object[] { });
 
             activeX.Silent = true;
-
-
-
 
             steamAcc.Authorization(PassBox.Text, LogBox.Text, CodeBox.Text);
 
@@ -78,7 +77,7 @@ namespace gosc.ProBot
             {               
                 if (!flag)
                 {
-                    wb.Navigate("https://gocs5.pro");
+                    wb.Navigate("https://gocs5.pro/bonus/wheel");
                     flag = true;
                 }
                 else
@@ -88,8 +87,7 @@ namespace gosc.ProBot
                     var a = GetUriCookieContainer(x);                   
                     var b = a.GetCookies(x).Cast<Cookie>();
 
-                    Cookie c;
-                    object z;
+                    Cookie c;                    
                     foreach (var t in b)
                     {
                         c = new Cookie();
@@ -108,14 +106,11 @@ namespace gosc.ProBot
                         c.Version = t.Version;
                         li.Add(c);
                     }
-
                     File.WriteAllText("Cookes1.json", JsonConvert.SerializeObject(li, Newtonsoft.Json.Formatting.Indented));
 
 
-
+                    // steamAcc.fAsync();
                 }
-
-
             } 
         }
 
@@ -145,6 +140,31 @@ namespace gosc.ProBot
                 cookies.SetCookies(uri, cookieData.ToString().Replace(';', ','));
             }
             return cookies;
+        }
+
+        private void Button_Click_2(object sender, RoutedEventArgs e)
+        {
+           
+                var doc = wb.Document as mshtml.HTMLDocument;
+                var input = doc.getElementsByTagName("input");
+                foreach (mshtml.IHTMLElement element in input)
+                {
+                    if (element.className== "wheel-code__input")
+                    {
+                        element.setAttribute("value", "someString");
+                        break;
+                    }
+                }
+            var input1 = doc.getElementsByTagName("button");
+
+            foreach (mshtml.IHTMLElement element in input1)
+            {
+                if (element.className== "wheel-code__btn wheel-code__btn--form")
+                {
+                    element.click();
+                    break;
+                }
+            }
         }
     }
 }

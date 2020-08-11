@@ -23,5 +23,7 @@
         
         <WebBrowser x:Name="wb" HorizontalAlignment="Left" Height="171" Margin="14,153,0,0" VerticalAlignment="Top" Width="329" LoadCompleted="MyBrowser_OnLoadCompleted"/>
         
+        <Button Content="Button" HorizontalAlignment="Left" Margin="289,83,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click_2"/>
+
     </Grid>
 </Window>

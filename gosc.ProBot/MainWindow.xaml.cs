@@ -1,16 +1,9 @@
-﻿using mshtml;
-using System;
+﻿using System.Collections.Generic;
+using System.Threading;
 using System.Windows;
 using System.Windows.Navigation;
-using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Net;
-using System.Collections.Generic;
-using System.Linq;
-using System.IO;
-using Newtonsoft.Json;
-using System.Xml;
+using OpenQA.Selenium;
+using OpenQA.Selenium.Chrome;
 
 namespace gosc.ProBot
 {
@@ -19,19 +12,6 @@ namespace gosc.ProBot
     /// </summary>
     public partial class MainWindow : Window
     {
-        [DllImport("wininet.dll", SetLastError = true)]
-        public static extern bool InternetGetCookieEx(
-        string url,
-        string cookieName,
-        StringBuilder cookieData,
-        ref int size,
-        Int32 dwFlags,
-        IntPtr lpReserved);
-        static bool flag = false;
-
-        private const Int32 InternetCookieHttponly = 0x2000;
-
-        Steam steamAcc;
         public MainWindow()
         {
             InitializeComponent();
@@ -39,132 +19,54 @@ namespace gosc.ProBot
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            steamAcc = new Steam(statusBlock);
-            steamAcc.b = wb;
 
-            dynamic activeX = wb.GetType().InvokeMember("ActiveXInstance",
-                    BindingFlags.GetProperty | BindingFlags.Instance | BindingFlags.NonPublic,
-                    null, wb, new object[] { });
 
-            activeX.Silent = true;
+            IWebDriver wd = new ChromeDriver();
+            wd.Navigate().GoToUrl("https://steamcommunity.com/login");
+            var log = wd.FindElement(By.Id("steamAccountName"));
+            var pas = wd.FindElement(By.Id("steamPassword"));
+            log.SendKeys("log");
+            pas.SendKeys("pass");
+            var batt = wd.FindElement(By.Id("SteamLogin"));
+            batt.Click();
 
-            steamAcc.Authorization(PassBox.Text, LogBox.Text, CodeBox.Text);
+            Thread.Sleep(2000);
+            var code = wd.FindElement(By.Id("twofactorcode_entry"));
+            code.SendKeys("R6HY5");
 
+            var butDiv = wd.FindElement(By.Id("login_twofactorauth_buttonset_entercode"));
+            var x = butDiv.FindElement(By.ClassName("auth_button_h3"));
+            x.Click();
+            Thread.Sleep(2000);
+            var cookies = wd.Manage().Cookies.AllCookies;
+
+            wd.Close();
+
+            IWebDriver wd1 = new ChromeDriver();
+
+            wd1.Navigate().GoToUrl("https://steamcommunity.com");
+            foreach (var c in cookies)
+            {
+                wd1.Manage().Cookies.AddCookie(c);
+            }
+            wd1.Navigate().GoToUrl("https://steamcommunity.com");
+
+            
         }
 
         private void Button_Click_1(object sender, RoutedEventArgs e)
         {
-            Steam steamAcc = new Steam(statusBlock);
-            RsaParameters rsaParam = new RsaParameters
-            {
-                Exponent = t1.Text,
-                Modulus = t2.Text,
-                Password = PassBox.Text
-            };
-            var encrypted = steamAcc.EncryptPassword(rsaParam);
-             Console.WriteLine(encrypted);
+            
         }
 
         private void MyBrowser_OnLoadCompleted(object sender, NavigationEventArgs e)
         {
-            var document = (IHTMLDocument3)wb.Document;
             
-            if (document.documentElement.outerHTML.Contains("Сообщество Steam"))
-            {
-                document.getElementById("imageLogin").click();
-            }
-            else
-            {               
-                if (!flag)
-                {
-                    wb.Navigate("https://gocs5.pro/bonus/wheel");
-                    flag = true;
-                }
-                else
-                {
-                    List <Cookie> li = new List<Cookie>();
-                    Uri x = new Uri("https://gocs5.pro");
-                    var a = GetUriCookieContainer(x);                   
-                    var b = a.GetCookies(x).Cast<Cookie>();
-
-                    Cookie c;                    
-                    foreach (var t in b)
-                    {
-                        c = new Cookie();
-                        c.Comment = t.Comment;
-                        c.CommentUri = t.CommentUri;
-                        c.HttpOnly = t.HttpOnly;
-                        c.Discard = t.Discard;
-                        c.Domain = t.Domain;
-                        c.Expired = t.Expired;
-                        c.Expires = t.Expires;
-                        c.Name = t.Name;
-                        c.Path = t.Path;
-                        c.Port = t.Port;
-                        c.Secure = t.Secure;
-                        c.Value = t.Value;
-                        c.Version = t.Version;
-                        li.Add(c);
-                    }
-                    File.WriteAllText("Cookes1.json", JsonConvert.SerializeObject(li, Newtonsoft.Json.Formatting.Indented));
-
-
-                    // steamAcc.fAsync();
-                }
-            } 
-        }
-
-        public static CookieContainer GetUriCookieContainer(Uri uri)
-        {
-            CookieContainer cookies = null;
-            // Determine the size of the cookie
-            int datasize = 8192 * 16;
-            StringBuilder cookieData = new StringBuilder(datasize);
-            if (!InternetGetCookieEx(uri.ToString(), null, cookieData, ref datasize, InternetCookieHttponly, IntPtr.Zero))
-            {
-                if (datasize < 0)
-                    return null;
-                // Allocate stringbuilder large enough to hold the cookie
-                cookieData = new StringBuilder(datasize);
-                if (!InternetGetCookieEx(
-                    uri.ToString(),
-                    null, cookieData,
-                    ref datasize,
-                    InternetCookieHttponly,
-                    IntPtr.Zero))
-                    return null;
-            }
-            if (cookieData.Length > 0)
-            {
-                cookies = new CookieContainer();
-                cookies.SetCookies(uri, cookieData.ToString().Replace(';', ','));
-            }
-            return cookies;
-        }
+        }       
 
         private void Button_Click_2(object sender, RoutedEventArgs e)
         {
-           
-                var doc = wb.Document as mshtml.HTMLDocument;
-                var input = doc.getElementsByTagName("input");
-                foreach (mshtml.IHTMLElement element in input)
-                {
-                    if (element.className== "wheel-code__input")
-                    {
-                        element.setAttribute("value", "someString");
-                        break;
-                    }
-                }
-            var input1 = doc.getElementsByTagName("button");
 
-            foreach (mshtml.IHTMLElement element in input1)
-            {
-                if (element.className== "wheel-code__btn wheel-code__btn--form")
-                {
-                    element.click();
-                    break;
-                }
-            }
         }
     }
 }

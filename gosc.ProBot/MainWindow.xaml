@@ -5,12 +5,12 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"     
         xmlns:local="clr-namespace:gosc.ProBot"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    
+        Title="MainWindow" Height="450" Width="800" Closing="Window_Closing">
+
     <Grid>
         <Button Content="Start" HorizontalAlignment="Left" Margin="189,48,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click"/>
-        <ScrollViewer HorizontalAlignment="Left" Height="79" Margin="14,329,0,0" VerticalAlignment="Top" Width="606">
-            <TextBlock x:Name="statusBlock" TextWrapping="Wrap" Width="579"/>
+        <ScrollViewer HorizontalAlignment="Left" Height="260" Margin="14,148,0,0" VerticalAlignment="Top" Width="606">
+            <TextBlock x:Name="statusBlock" TextWrapping="Wrap" Width="579" Height="337"/>
         </ScrollViewer>
         <TextBox x:Name="LogBox" HorizontalAlignment="Left" Height="24" Margin="54,45,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
         <TextBox x:Name="PassBox" HorizontalAlignment="Left" Height="24" Margin="54,83,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
@@ -20,6 +20,6 @@
         <Label Content="Code" HorizontalAlignment="Left" Margin="14,118,0,0" VerticalAlignment="Top" Height="30" Width="65" RenderTransformOrigin="0.468,0.75"/>
 
         <Button Content="Button" HorizontalAlignment="Left" Margin="289,83,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click_2"/>
-        
+
     </Grid>
 </Window>

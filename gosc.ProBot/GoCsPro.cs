@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Controls;
 using static gosc.ProBot.MainWindow;
 
@@ -16,11 +17,12 @@ namespace gosc.ProBot
     {
         private TextBlock frontStatusBlock;
         private IWebDriver wd;
-
-        public GoCsPro(IWebDriver inDrive, TextBlock frontStatusBlock)
+        public List<Repoz> db;
+        public GoCsPro(IWebDriver inDrive, TextBlock frontStatusBlock, List<Repoz> db)
         {
             wd = inDrive;
             this.frontStatusBlock = frontStatusBlock;
+            this.db = db;
         }
 
         private List<String> statusList = new List<string>()
@@ -33,7 +35,10 @@ namespace gosc.ProBot
             "Попытка авторизоваться на сайте через Steam",
             "Нет авторизации в Steam",
             "Авторизация на сайте при помощи Steam аккаунта с логином: ",
-            "Сохраняем Печеньки от сайта"
+            "Сохраняем Печеньки от сайта",
+            "Не рабочий код: ",
+            "Рабочий код: ",
+            "Активировали код с прошлого раза. Как вариант, вы закрыли программу на этапе активации!"
         };
 
         private void outStatus(int statusCode)
@@ -134,6 +139,52 @@ namespace gosc.ProBot
                     }
                 }
             }
+        }
+
+        public async void b()
+        {
+            for (int i = db.Count - 1; i >-1; i--)
+            {
+                int a = 0;
+                if (db[i].flag == true)
+                {
+                    break;
+                }
+                else
+                {
+                    wd.Navigate().GoToUrl("https://gocs5.pro/bonus/wheel");
+                    if (wd.PageSource.Contains("wheel-code__input"))
+                    {
+                        var elem = wd.FindElement(By.ClassName("wheel-code__input"));
+                        elem.SendKeys(db[i].Code);
+                        var key = wd.FindElement(By.ClassName("wheel-code__btn"));
+                        key.Click();
+                        Thread.Sleep(2000);
+
+                        if (wd.PageSource.Contains("fortune__btn-wrapper"))
+                        {
+                            var x = wd.FindElement(By.ClassName("fortune__btn-wrapper"));
+                            x.Click();
+                            //outStatus(10);
+                            //frontStatusBlock.Text += db[i].Code;
+                           // db[i].flag = true;
+                        }
+                        else
+                        {
+                            Thread.Sleep(2000);
+                            //outStatus(9);
+                            //frontStatusBlock.Text += db[i].Code;
+                            //db[i].flag = true;
+                        }
+                    }
+                    else if (wd.PageSource.Contains("fortune__btn-wrapper"))
+                    {
+                        var x = wd.FindElement(By.ClassName("fortune__btn-wrapper"));
+                        x.Click();
+                        //outStatus(11);
+                    }
+                }
+            }           
         }
     }
 }

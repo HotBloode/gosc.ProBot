@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Controls;
 
@@ -14,43 +15,46 @@ namespace gosc.ProBot
         private static bool authorizationFlag = true;
         private IWebDriver wd;
         private TextBlock frontStatusBlock;
+        static Parser p = new Parser();
+        public List<Repoz> db = new List<Repoz>();
+        
+        static Thread myThread = new Thread(new ThreadStart(p.ParsePage));
+        static Thread myThread1;
+
+        static GoCsPro goscpro;
+        Steam steam;
+
         public Controller(TextBlock frontStatusBlock)
         {
             this.frontStatusBlock = frontStatusBlock;
 
 
-            var driverService = ChromeDriverService.CreateDefaultService();
+            var driverService = ChromeDriverService.CreateDefaultService();            
             driverService.HideCommandPromptWindow = true;
-            
-            wd = new ChromeDriver(driverService, new ChromeOptions());            
-            
-        }
+            ChromeOptions options = new ChromeOptions();
+            options.AddArguments("--disable-notifications");
+            wd = new ChromeDriver(driverService, options);
 
-        private List<String> statusList = new List<string>()
-        {
-            "Попытка авторизоваться на сайте через Печеньки",
-            "Не удалось авторизоваться на сайте при помощи Печенек",
-            "",
-           
-            ""
-        };
+            p.db = db;
+            p.Notify += s;
 
-        private void outStatus(int statusCode)
-        {
-            frontStatusBlock.Text += "\n" + statusList[statusCode];
+
+            p.timer = 7 * 60000;
+
+            goscpro = new GoCsPro(wd, frontStatusBlock, db);
+            steam  = new Steam(wd, frontStatusBlock);
+            myThread1 = new Thread(new ThreadStart(goscpro.b));
         }
+        
 
         public void Start(string log, string pass, string code)
         {
-            Steam steam = new Steam(wd, frontStatusBlock);
-            GoCsPro goscpro = new GoCsPro(wd, frontStatusBlock);
-
             if (authorizationFlag)
             {
                
                 if (goscpro.AuthorizationWithCookie())
                 {
-                    //
+                    myThread.Start();
                 }
                 else
                 {
@@ -82,6 +86,10 @@ namespace gosc.ProBot
                     }
                 }
             }
+        }
+        void s()
+        {
+           myThread1.Start();
         }
 
         public void Exit()

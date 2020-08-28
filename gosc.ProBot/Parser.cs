@@ -14,9 +14,27 @@ namespace gosc.ProBot
 {
     class Parser
     {
-
+        FlagSinhron flag;
         public delegate void ParsHandler();
         public event ParsHandler Notify;
+        private System.Windows.Controls.TextBlock frontStatusBlock;
+
+        private List<String> statusList = new List<string>()
+        {
+            "Ошибка c интернет подключением! Проверьте подключение. Парсер перезапустится через 7 минут!",
+            "Ошибка (Сообщите о ней разработчику). Программа перезапустится через 7 минут>> "
+        };
+
+        public Parser(FlagSinhron flag, System.Windows.Controls.TextBlock frontStatusBlock)
+        {
+            this.flag = flag;
+            this.frontStatusBlock = frontStatusBlock;
+        }
+
+        private void outStatus(int statusCode)
+        {
+            frontStatusBlock.Dispatcher.Invoke(new Action(() => frontStatusBlock.Text += "\n" + statusList[statusCode]));
+        }
 
         //Полная urд парса
         string url;
@@ -40,9 +58,12 @@ namespace gosc.ProBot
         }
 
         public async void ParsePage()
-        {
+        {            
             while (true)
             {
+                if(!flag.Value)
+                {
+
                 try
                 {
                     LUrl();
@@ -87,15 +108,20 @@ namespace gosc.ProBot
                 }
                 catch (HttpRequestException e)
                 {
-                    MessageBox.Show($"Ошибка c интернет подключением! Проверьте подключение. Парсер перезапустится через указанную вами паузу!");
+                    outStatus(1);                    
                     //Усыпляем поток
                     Thread.Sleep(timer);
                 }
                 catch (Exception e)
+                {                   
+                        frontStatusBlock.Dispatcher.Invoke(new Action(() => frontStatusBlock.Text +=  e.Message +" " + e.GetType()));
+                        //Усыпляем поток
+                        Thread.Sleep(timer);
+                }
+                }
+                else
                 {
-                    MessageBox.Show($"Ошибка (Сообщите о ней разработчику). Программа перезапустится через указанную вами паузу>> {e.Message} {e.GetType()}");
-                    //Усыпляем поток
-                    Thread.Sleep(timer);
+                    Thread.Sleep(60000);
                 }
             }
 

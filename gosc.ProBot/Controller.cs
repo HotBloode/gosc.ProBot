@@ -6,20 +6,25 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Controls;
 
 namespace gosc.ProBot
 {
     class Controller
     {
+        static FlagSinhron flag = new FlagSinhron(false);
+       
+
         private static bool authorizationFlag = true;
         private IWebDriver wd;
         private TextBlock frontStatusBlock;
-        static Parser p = new Parser();
+        static Parser p;
+       
         public List<Repoz> db = new List<Repoz>();
         
-        static Thread myThread = new Thread(new ThreadStart(p.ParsePage));
-        static Thread myThread1;
+        static Thread myThread;
+        
 
         static GoCsPro goscpro;
         Steam steam;
@@ -27,13 +32,15 @@ namespace gosc.ProBot
         public Controller(TextBlock frontStatusBlock)
         {
             this.frontStatusBlock = frontStatusBlock;
+            p = new Parser(flag, this.frontStatusBlock);
 
 
             var driverService = ChromeDriverService.CreateDefaultService();            
             driverService.HideCommandPromptWindow = true;
             ChromeOptions options = new ChromeOptions();
-            options.AddArguments("--disable-notifications");
+            options.AddArguments("--disable-notifications");           
             wd = new ChromeDriver(driverService, options);
+           
 
             p.db = db;
             p.Notify += s;
@@ -41,19 +48,19 @@ namespace gosc.ProBot
 
             p.timer = 7 * 60000;
 
-            goscpro = new GoCsPro(wd, frontStatusBlock, db);
+            goscpro = new GoCsPro(wd, frontStatusBlock, db, flag);
             steam  = new Steam(wd, frontStatusBlock);
-            myThread1 = new Thread(new ThreadStart(goscpro.b));
+            
         }
         
 
         public void Start(string log, string pass, string code)
         {
             if (authorizationFlag)
-            {
-               
+            {               
                 if (goscpro.AuthorizationWithCookie())
                 {
+                    myThread = new Thread(new ThreadStart(p.ParsePage));
                     myThread.Start();
                 }
                 else
@@ -61,8 +68,11 @@ namespace gosc.ProBot
                     
                     if (steam.AuthorizationWithCookie())
                     {
-                        goscpro.SteamAuthorization();
-                        //
+                       if(goscpro.SteamAuthorization())
+                        {
+                            myThread = new Thread(new ThreadStart(p.ParsePage));
+                            myThread.Start();
+                        }
                     }
                     else
                     {
@@ -81,15 +91,19 @@ namespace gosc.ProBot
                 {
                     if (steam.AuthorizationWithLogPass(log, pass, code))
                     {
-                        goscpro.SteamAuthorization();
-                        //
+                        if (goscpro.SteamAuthorization())
+                        {
+                            myThread = new Thread(new ThreadStart(p.ParsePage));
+                            myThread.Start();
+                        }
                     }
                 }
             }
         }
         void s()
         {
-           myThread1.Start();
+            Thread myThread1 = new Thread(new ThreadStart(goscpro.b));
+            myThread1.Start();
         }
 
         public void Exit()

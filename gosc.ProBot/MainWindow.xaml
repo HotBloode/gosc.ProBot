@@ -5,21 +5,53 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"     
         xmlns:local="clr-namespace:gosc.ProBot"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800" Closing="Window_Closing">
+        Title="GOSCBOT"  Closing="Window_Closing" Foreground="Black" Background="{x:Null}" ResizeMode="NoResize" Height="292.8" Width="595.2"
+        WindowStyle="None">
 
-    <Grid>
-        <Button Content="Start" HorizontalAlignment="Left" Margin="189,48,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click"/>
-        <ScrollViewer HorizontalAlignment="Left" Height="260" Margin="14,148,0,0" VerticalAlignment="Top" Width="606">
-            <TextBlock x:Name="statusBlock" TextWrapping="Wrap" Width="579" Height="337"/>
+    <Window.Resources>
+        <Style x:Key="SomeButtonStyle" TargetType="Button">
+            <Setter Property="Button.Template">
+                <Setter.Value>
+                    <ControlTemplate>
+                        <Grid>
+                            <Border Name="Head">
+                                <Rectangle HorizontalAlignment="Stretch"  VerticalAlignment="Stretch"  Fill="Transparent" />
+                            </Border>
+                            <Label Name="NameLable" Content="Start" FontStyle="Italic" HorizontalAlignment="Center" VerticalAlignment="Center" Foreground="#FF06FF00"></Label>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="true">
+                                <Setter TargetName="Head" Property="Background" Value="#3500ACFF"/>                                
+                            </Trigger>
+
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid MouseLeftButtonDown="Grid_MouseLeftButtonDown">
+        <Grid.Background>
+            <LinearGradientBrush EndPoint="0.5,1" MappingMode="RelativeToBoundingBox" StartPoint="0.5,0">
+                <GradientStop Color="#FF49B111" Offset="1"/>
+                <GradientStop Color="#FF1BD18C"/>
+            </LinearGradientBrush>
+        </Grid.Background>
+
+
+        <Button  Style="{StaticResource SomeButtonStyle}" Content="Start" HorizontalAlignment="Left" Margin="189,45,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click" Foreground="#FF06FF00" Background="#FF1FCE81" BorderBrush="#FF06FF00" MouseMove="Button_MouseMove" Height="24"/>
+        <ScrollViewer HorizontalAlignment="Left" Height="92" Margin="8,153,0,0" VerticalAlignment="Top" Width="568">
+            <TextBlock x:Name="statusBlock" TextWrapping="Wrap" Width="530"   />
         </ScrollViewer>
-        <TextBox x:Name="LogBox" HorizontalAlignment="Left" Height="24" Margin="54,45,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
-        <TextBox x:Name="PassBox" HorizontalAlignment="Left" Height="24" Margin="54,83,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
-        <TextBox x:Name="CodeBox" HorizontalAlignment="Left" Height="23" Margin="54,118,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120"/>
-        <Label Content="Log" HorizontalAlignment="Left" Margin="14,45,0,0" VerticalAlignment="Top" Height="29" Width="75" RenderTransformOrigin="0.545,0.25"/>
-        <Label Content="Pass" HorizontalAlignment="Left" Margin="14,83,0,0" VerticalAlignment="Top" Height="30" Width="65" RenderTransformOrigin="0.468,0.75"/>
-        <Label Content="Code" HorizontalAlignment="Left" Margin="14,118,0,0" VerticalAlignment="Top" Height="30" Width="65" RenderTransformOrigin="0.468,0.75"/>
-
-        <Button Content="Button" HorizontalAlignment="Left" Margin="289,83,0,0" VerticalAlignment="Top" Width="75" Click="Button_Click_2"/>
+        <TextBox x:Name="LogBox" HorizontalAlignment="Left" Height="24" Margin="54,45,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" BorderBrush="#FF06FF00" Background="#FF1FCE81"/>
+        <TextBox x:Name="PassBox" HorizontalAlignment="Left" Height="24" Margin="54,83,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" Background="#FF1FCE81" BorderBrush="#FF06FF00"/>
+        <TextBox x:Name="CodeBox" HorizontalAlignment="Left" Height="23" Margin="54,118,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="120" BorderBrush="#FF06FF00" Background="#FF1FCE81"/>
+        <Label Content="Log" HorizontalAlignment="Left" Margin="14,45,0,0" VerticalAlignment="Top" Height="29" Width="75" RenderTransformOrigin="0.545,0.25" BorderBrush="#FF06FF00" Foreground="#FF06FF00"/>
+        <Label Content="Pass" HorizontalAlignment="Left" Margin="14,83,0,0" VerticalAlignment="Top" Height="30" Width="65" RenderTransformOrigin="0.468,0.75" Foreground="#FF06FF00"/>
+        <Label Content="Code" HorizontalAlignment="Left" Margin="14,118,0,0" VerticalAlignment="Top" Height="30" Width="65" RenderTransformOrigin="0.468,0.75" Foreground="#FF06FF00"/>
+        <Button Content="Х" HorizontalAlignment="Left" Margin="573,10,0,0" VerticalAlignment="Top" Width="18" Click="Button_Click_3" Background="{x:Null}" RenderTransformOrigin="-0.289,0.417" BorderBrush="{x:Null}"/>
+        <Button Content="_" HorizontalAlignment="Left" Margin="551,10,0,0" VerticalAlignment="Top" Width="17" Click="Button_Click_4" BorderBrush="{x:Null}" Background="{x:Null}"/>
 
     </Grid>
 </Window>

@@ -18,6 +18,8 @@ namespace gosc.ProBot
         Controller controller;
         public MainWindow()
         {
+            
+
             InitializeComponent();
         }
 
@@ -45,6 +47,26 @@ namespace gosc.ProBot
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             controller.Exit();
+        }
+
+        private void Button_Click_3(object sender, RoutedEventArgs e)
+        {
+            this.Close();
+        }
+
+        private void Button_Click_4(object sender, RoutedEventArgs e)
+        {
+            WindowState = WindowState.Minimized;
+        }
+
+        private void Grid_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            this.DragMove();
+        }
+
+        private void Button_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
+        {
+           
         }
     }
 }

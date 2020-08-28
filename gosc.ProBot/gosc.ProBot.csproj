@@ -106,6 +106,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Controller.cs" />
+    <Compile Include="FlagSinhron.cs" />
     <Compile Include="GoCsPro.cs" />
     <Compile Include="Parser.cs" />
     <Compile Include="Repoz.cs" />

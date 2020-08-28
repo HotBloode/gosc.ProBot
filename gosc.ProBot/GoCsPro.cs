@@ -15,14 +15,16 @@ namespace gosc.ProBot
 {
     class GoCsPro
     {
+        FlagSinhron flag;
         private TextBlock frontStatusBlock;
         private IWebDriver wd;
         public List<Repoz> db;
-        public GoCsPro(IWebDriver inDrive, TextBlock frontStatusBlock, List<Repoz> db)
+        public GoCsPro(IWebDriver inDrive, TextBlock frontStatusBlock, List<Repoz> db, FlagSinhron flag)
         {
             wd = inDrive;
             this.frontStatusBlock = frontStatusBlock;
             this.db = db;
+            this.flag = flag;
         }
 
         private List<String> statusList = new List<string>()
@@ -42,8 +44,8 @@ namespace gosc.ProBot
         };
 
         private void outStatus(int statusCode)
-        {
-            frontStatusBlock.Text += "\n" + statusList[statusCode];
+        {            
+            frontStatusBlock.Dispatcher.Invoke(new Action(() => frontStatusBlock.Text += "\n" + statusList[statusCode]));           
         }
         public bool SteamAuthorization()
         {
@@ -143,9 +145,9 @@ namespace gosc.ProBot
 
         public async void b()
         {
+            flag.Value = true;
             for (int i = db.Count - 1; i >-1; i--)
-            {
-                int a = 0;
+            {                
                 if (db[i].flag == true)
                 {
                     break;
@@ -159,32 +161,41 @@ namespace gosc.ProBot
                         elem.SendKeys(db[i].Code);
                         var key = wd.FindElement(By.ClassName("wheel-code__btn"));
                         key.Click();
-                        Thread.Sleep(2000);
+                        Thread.Sleep(3000);
 
                         if (wd.PageSource.Contains("fortune__btn-wrapper"))
                         {
+                            Thread.Sleep(2000);
+
+                            outStatus(10);
+                            frontStatusBlock.Dispatcher.Invoke(new Action(() => frontStatusBlock.Text += db[i].Code));
+
                             var x = wd.FindElement(By.ClassName("fortune__btn-wrapper"));
                             x.Click();
-                            //outStatus(10);
-                            //frontStatusBlock.Text += db[i].Code;
-                           // db[i].flag = true;
+
+                            Thread.Sleep(2000);
+                            db[i].flag = true;
                         }
                         else
-                        {
+                        {                            
+                            outStatus(9);
+                            frontStatusBlock.Dispatcher.Invoke(new Action(() => frontStatusBlock.Text += db[i].Code));
                             Thread.Sleep(2000);
-                            //outStatus(9);
-                            //frontStatusBlock.Text += db[i].Code;
-                            //db[i].flag = true;
+                            db[i].flag = true;
                         }
                     }
                     else if (wd.PageSource.Contains("fortune__btn-wrapper"))
                     {
+                        outStatus(11);                        
                         var x = wd.FindElement(By.ClassName("fortune__btn-wrapper"));
                         x.Click();
-                        //outStatus(11);
+                        i--;
+                        Thread.Sleep(3000);
                     }
                 }
-            }           
+            }
+            flag.Value =false;
+            
         }
     }
 }

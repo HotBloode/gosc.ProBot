@@ -13,101 +13,170 @@ namespace gosc.ProBot
 {
     class Controller
     {
+        private List<String> statusList = new List<string>()
+        {
+            "Ложимся спать (режим сна на ПК) и останавливаем потоки!",
+            "Просыпаемся после Сна!",
+            "Введие корректные данные дя авторизации",
+            "Нажатие кнопки старт!",
+            "Выход из программы!"
+        };
+
+        //Флаг взаимодействия потока Парсера и потока Активатора кодов. Пока не проверяться все коды, парсер не будет работать.
         static FlagSinhron flag = new FlagSinhron(false);
        
 
         private static bool authorizationFlag = true;
+
+        //WebDriver для работы с Chrome
         private IWebDriver wd;
+
+        //Поле для информирования пользователя
         private TextBlock frontStatusBlock;
-        static Parser p;
-       
+
+        static Parser parser;
+
+        //List with codes
         public List<Repoz> db = new List<Repoz>();
         
-        static Thread myThread;
-        
+        static Thread ThreadForParser;
+        Thread ThreadForActivate;
 
         static GoCsPro goscpro;
         Steam steam;
 
+        //Логрование в txt
+        Loger loger;   
+
+
         public Controller(TextBlock frontStatusBlock)
         {
+            //Инициализируем логер
+            loger = new Loger(frontStatusBlock);
+
+            //Соеденяем блок формы и код, для информирования
             this.frontStatusBlock = frontStatusBlock;
-            p = new Parser(flag, this.frontStatusBlock);
 
-
-            var driverService = ChromeDriverService.CreateDefaultService();            
+            //Инициализируем парсер
+            parser = new Parser(flag, loger);
+            
+            var driverService = ChromeDriverService.CreateDefaultService();
             driverService.HideCommandPromptWindow = true;
             ChromeOptions options = new ChromeOptions();
-            options.AddArguments("--disable-notifications");           
-            wd = new ChromeDriver(driverService, options);
-           
 
-            p.db = db;
-            p.Notify += s;
+            //off notifications
+            options.AddArguments("--disable-notifications");
 
+            //hide Chrome
+            options.AddArguments("--headless");
 
-            p.timer = 7 * 60000;
+            //Options wd
+            wd = new ChromeDriver(driverService, options);            
 
-            goscpro = new GoCsPro(wd, frontStatusBlock, db, flag);
-            steam  = new Steam(wd, frontStatusBlock);
-            
+            //Конектим базу парсера с основной
+            parser.db = db;
+
+            //Навешиваем событие для начала активации найденых кодов
+            parser.Notify += StartActivateCodes;
+
+            //ТАЙЧЕР МЕЖДУ ПОИСКОМ КОДОВ. эТО МИНИМАЛЬНАЯ ЗЕДАРЖКА ЗА КОТОРУЮ MIPED НЕ БЛОЧИТ)
+            parser.timer = 7 * 60000;
+
+            goscpro = new GoCsPro(wd, db, flag, loger);
+            steam  = new Steam(wd, loger);            
         }
         
 
         public void Start(string log, string pass, string code)
         {
+            loger.WrireLog(statusList[3]);
+
             if (authorizationFlag)
-            {               
+            {        
+                //ПРобуем печеньки сайта
                 if (goscpro.AuthorizationWithCookie())
                 {
-                    myThread = new Thread(new ThreadStart(p.ParsePage));
-                    myThread.Start();
+                    //Если всё ок, то пихаем парсер в поток и запускаем его
+                    ThreadForParser = new Thread(new ThreadStart(parser.ParsePage));
+                    ThreadForParser.Start();
                 }
                 else
                 {
-                    
+                    //Пробуем печеньки стима
+                    //Если всё ок, то пробуем авторизоваться на сайте
                     if (steam.AuthorizationWithCookie())
                     {
                        if(goscpro.SteamAuthorization())
                         {
-                            myThread = new Thread(new ThreadStart(p.ParsePage));
-                            myThread.Start();
+                            //Если всё ок, то пихаем парсер в поток и запускаем его
+                            ThreadForParser = new Thread(new ThreadStart(parser.ParsePage));
+                            ThreadForParser.Start();
                         }
                     }
                     else
                     {
                         authorizationFlag = false;
+
                         return;
                     }
                 }
             }
             else
             {
+                //Проверяем на заполненость и пустоту строк
                 if (log == "" || pass == "" || code == "" || log == null || pass == null || code == null)
                 {
-                    frontStatusBlock.Text += "\n" + "Введие корректные данные дя авторизации";
+                    loger.WrireLog(statusList[2]);
                 }
                 else
                 {
+                    //Попытка авторизациии в стиме по логину, паролю и коду
                     if (steam.AuthorizationWithLogPass(log, pass, code))
                     {
+                        //Теперь по печенькам
                         if (goscpro.SteamAuthorization())
                         {
-                            myThread = new Thread(new ThreadStart(p.ParsePage));
-                            myThread.Start();
+                            //Если всё ок, то пихаем парсер в поток и запускаем его
+                            ThreadForParser = new Thread(new ThreadStart(parser.ParsePage));
+                            ThreadForParser.Start();
                         }
                     }
                 }
             }
         }
-        void s()
+
+
+        void StartActivateCodes()
         {
-            Thread myThread1 = new Thread(new ThreadStart(goscpro.b));
-            myThread1.Start();
+            //Т.К после завершения работы потока от сам закрывается, то каждый раз создаём новый
+            ThreadForActivate = new Thread(new ThreadStart(goscpro.b));
+            ThreadForActivate.Start();
         }
+
+
+        public void OnOut()
+        {
+            loger.WrireLog(statusList[0]);
+            ThreadForParser.Suspend();
+            if (flag.Value)
+            {
+                ThreadForActivate.Suspend();
+            }
+        }
+
+        public void OnIn()
+        {
+            loger.WrireLog(statusList[1]);
+            ThreadForParser.Resume();
+            if (flag.Value)
+            {
+                ThreadForActivate.Resume();
+            }           
+        }      
 
         public void Exit()
         {
+            loger.WrireLog(statusList[4]);
             wd.Close();
             wd.Quit();           
         }

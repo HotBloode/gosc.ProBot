@@ -16,17 +16,24 @@ namespace gosc.ProBot
     class GoCsPro
     {
         FlagSinhron flag;
-        private TextBlock frontStatusBlock;
+        
         private IWebDriver wd;
         public List<Repoz> db;
-        public GoCsPro(IWebDriver inDrive, TextBlock frontStatusBlock, List<Repoz> db, FlagSinhron flag)
+
+
+        //Логрование в txt
+        Loger loger;
+
+        public GoCsPro(IWebDriver inDrive,List<Repoz> db, FlagSinhron flag, Loger loger )
         {
-            wd = inDrive;
-            this.frontStatusBlock = frontStatusBlock;
-            this.db = db;
+            //Инициаоизируем логер, wd, БД и Флаг синхронизации
+            this.loger = loger;            
+            wd = inDrive;            
+            this.db = db;            
             this.flag = flag;
         }
 
+        //Список сообщений
         private List<String> statusList = new List<string>()
         {
             "Попытка авторизоваться на сайте через Печеньки",
@@ -41,16 +48,13 @@ namespace gosc.ProBot
             "Не рабочий код: ",
             "Рабочий код: ",
             "Активировали код с прошлого раза. Как вариант, вы закрыли программу на этапе активации!"
-        };
+        };                
 
-        private void outStatus(int statusCode)
-        {            
-            frontStatusBlock.Dispatcher.Invoke(new Action(() => frontStatusBlock.Text += "\n" + statusList[statusCode]));           
-        }
+        //
         public bool SteamAuthorization()
         {
+            loger.WrireLog(statusList[5]);
             
-            outStatus(5);
             wd.Navigate().GoToUrl("https://gocs5.pro/");
             wd.FindElement(By.ClassName("auth__logo")).Click();
             wd.FindElement(By.ClassName("modal__btn")).Click();
@@ -58,22 +62,18 @@ namespace gosc.ProBot
             try
             {
                 IWebElement elemForCheck = wd.FindElement(By.ClassName("OpenID_loggedInAccount"));
-                outStatus(7);
-                frontStatusBlock.Text += elemForCheck.Text;
-
-                
+                loger.WrireLog(statusList[7] += elemForCheck.Text);                             
             }
             catch
             {
-                outStatus(6);
+                loger.WrireLog(statusList[6]);
                 return false;
             }
 
             wd.FindElement(By.Id("imageLogin")).Click();
 
             IWebElement elemForCheck1 = wd.FindElement(By.ClassName("header-account__name"));
-            outStatus(3);
-            frontStatusBlock.Text += elemForCheck1.Text;
+            loger.WrireLog(statusList[3] += elemForCheck1.Text);           
 
 
             var cookiesFromWd = wd.Manage().Cookies.AllCookies;
@@ -88,28 +88,31 @@ namespace gosc.ProBot
                 }
             }
             File.WriteAllText("CookesGoCsPro.json", JsonConvert.SerializeObject(cookieList, Formatting.Indented));
-            outStatus(8);
-
-           
+            loger.WrireLog(statusList[8]);
 
             return true;
         }
 
+        //Ф-ия авторизации при помощи печенек сайта
         public bool AuthorizationWithCookie()
         {
-            outStatus(0);
+            loger.WrireLog(statusList[0]);
+
+            //Если файла с Печеньками вообще нет, то идём на ***
             if (!File.Exists("CookesGoCsPro.json"))
             {
-                outStatus(1);
+                loger.WrireLog(statusList[1]);
                 return false;
             }
             else
             {
+                //Если файл есть, то пытаемся вытащить данные из него
                 List<TmpCookie> n = JsonConvert.DeserializeObject<List<TmpCookie>>(File.ReadAllText("CookesGoCsPro.json"));
 
+                //Проверка файла на пустоту
                 if (n == null|| n.Count == 0)
                 {
-                    outStatus(2);
+                    loger.WrireLog(statusList[2]);
                     return false;
                 }               
                 else
@@ -122,29 +125,31 @@ namespace gosc.ProBot
                     {
                         Cookie newCo = new Cookie(c.Name, c.Value, c.Domain, c.Path, c.Expiry);
                         wd.Manage().Cookies.AddCookie(newCo);
-                    }                   
+                    }     
+                    
                     //И снова переходим на сайт
                     wd.Navigate().GoToUrl("https://gocs5.pro/");
                     Thread.Sleep(2000);                    
                     
+                    //Проверяем появилось ли имя пользователя и делаем выводы об авторизации
                     try
                     {
                         IWebElement elemForCheck = wd.FindElement(By.ClassName("header-account__name"));
-                        outStatus(3);
-                        frontStatusBlock.Text += elemForCheck.Text;
+                        loger.WrireLog(statusList[3] += elemForCheck.Text);              
                         return true;
                     }
                     catch
                     {
-                        outStatus(4);
+                        loger.WrireLog(statusList[4]);
                         return false;
                     }
                 }
             }
         }
 
+
         public async void b()
-        {
+        {            
             flag.Value = true;
             for (int i = db.Count - 1; i >-1; i--)
             {                
@@ -165,10 +170,9 @@ namespace gosc.ProBot
 
                         if (wd.PageSource.Contains("fortune__btn-wrapper"))
                         {
-                            Thread.Sleep(2000);
-
-                            outStatus(10);
-                            frontStatusBlock.Dispatcher.Invoke(new Action(() => frontStatusBlock.Text += db[i].Code));
+                            Thread.Sleep(2000);                            
+                            loger.WrireLog(statusList[10] + db[i].Code);
+                            //frontStatusBlock.Dispatcher.Invoke(new Action(() => frontStatusBlock.Text += db[i].Code));
 
                             var x = wd.FindElement(By.ClassName("fortune__btn-wrapper"));
                             x.Click();
@@ -177,16 +181,17 @@ namespace gosc.ProBot
                             db[i].flag = true;
                         }
                         else
-                        {                            
-                            outStatus(9);
-                            frontStatusBlock.Dispatcher.Invoke(new Action(() => frontStatusBlock.Text += db[i].Code));
+                        {                           
+                            loger.WrireLog(statusList[9] + db[i].Code);
+
+                            //frontStatusBlock.Dispatcher.Invoke(new Action(() => frontStatusBlock.Text += db[i].Code));
                             Thread.Sleep(2000);
                             db[i].flag = true;
                         }
                     }
                     else if (wd.PageSource.Contains("fortune__btn-wrapper"))
                     {
-                        outStatus(11);                        
+                        loger.WrireLog(statusList[11]);                        
                         var x = wd.FindElement(By.ClassName("fortune__btn-wrapper"));
                         x.Click();
                         i--;
@@ -194,8 +199,7 @@ namespace gosc.ProBot
                     }
                 }
             }
-            flag.Value =false;
-            
+            flag.Value =false;            
         }
     }
 }

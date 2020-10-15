@@ -15,17 +15,29 @@ namespace gosc.ProBot
     /// </summary>
     public partial class MainWindow : Window
     {
-        Controller controller;
+          Controller controller;
         public MainWindow()
         {
-            
-
             InitializeComponent();
+            controller = new Controller(statusBlock);
+
+            Microsoft.Win32.SystemEvents.SessionSwitch += OnIn;
+            Microsoft.Win32.SystemEvents.SessionEnding += OnOut;
+
+        }
+         void OnIn(object sender, Microsoft.Win32.SessionSwitchEventArgs e)
+        {
+            controller.OnIn();
+
+        }
+
+         void OnOut(object sender, Microsoft.Win32.SessionEndingEventArgs e)
+        {
+            controller.OnOut();
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
-        {
-            controller = new Controller(statusBlock);
+        {           
             controller.Start(LogBox.Text,PassBox.Text, CodeBox.Text);
         }
 
@@ -67,6 +79,7 @@ namespace gosc.ProBot
         private void Button_MouseMove(object sender, System.Windows.Input.MouseEventArgs e)
         {
            
-        }
+        }        
+
     }
 }

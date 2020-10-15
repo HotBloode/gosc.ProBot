@@ -108,6 +108,7 @@
     <Compile Include="Controller.cs" />
     <Compile Include="FlagSinhron.cs" />
     <Compile Include="GoCsPro.cs" />
+    <Compile Include="Loger.cs" />
     <Compile Include="Parser.cs" />
     <Compile Include="Repoz.cs" />
     <Compile Include="Steam.cs" />

@@ -14,26 +14,29 @@ namespace gosc.ProBot
 {
     class Parser
     {
+
         FlagSinhron flag;
+
         public delegate void ParsHandler();
         public event ParsHandler Notify;
-        private System.Windows.Controls.TextBlock frontStatusBlock;
+       
+
+        //Логрование в txt
+        Loger loger;
 
         private List<String> statusList = new List<string>()
         {
             "Ошибка c интернет подключением! Проверьте подключение. Парсер перезапустится через 7 минут!",
-            "Ошибка (Сообщите о ней разработчику). Программа перезапустится через 7 минут>> "
+            "Ошибка (Сообщите о ней разработчику). Программа перезапустится через 7 минут>> ",
+            "Файла со стартовой страницей нет!",
+            "Файла с Печеньками пустой!",
+            "Найдено новых кодов: "
         };
 
-        public Parser(FlagSinhron flag, System.Windows.Controls.TextBlock frontStatusBlock)
+        public Parser(FlagSinhron flag, Loger loger)
         {
             this.flag = flag;
-            this.frontStatusBlock = frontStatusBlock;
-        }
-
-        private void outStatus(int statusCode)
-        {
-            frontStatusBlock.Dispatcher.Invoke(new Action(() => frontStatusBlock.Text += "\n" + statusList[statusCode]));
+            this.loger = loger;            
         }
 
         //Полная urд парса
@@ -52,9 +55,27 @@ namespace gosc.ProBot
         int startPage;
 
         //Подгрузка последней страници котоорую парсили
-        void LUrl()
+        bool LUrl()
         {
-            startPage = Convert.ToInt32(File.ReadAllText("Url.json"));
+            //Если Файл не существует или пустой то false
+            if(!File.Exists("Url.json"))
+            {
+                loger.WrireLog(statusList[2]);
+                return false;
+            }
+            else
+            {
+                if(File.ReadAllText("Url.json")== "")
+                {
+                    loger.WrireLog(statusList[3]);
+                    return false;
+                }
+                else
+                {
+                    startPage = Convert.ToInt32(File.ReadAllText("Url.json"));
+                    return true;
+                }  
+            }            
         }
 
         public async void ParsePage()
@@ -65,17 +86,25 @@ namespace gosc.ProBot
                 {
 
                 try
-                {
-                    LUrl();
+                {                    
                     globalFlag = false;
-                    url = baseUrl + startPage;
+                        url = baseUrl + 1;
                     //Получаем html страницу
                     var source = await GetHtmlPage();
                     var domParser = new HtmlParser();
                     var doc = await domParser.ParseDocumentAsync(source);
                     var list = new List<string>();
+
                     //Ищем последнюю страницу с кодами на форуме
                     lastPage = Convert.ToInt32(doc.QuerySelector("input[max]").Attributes[5].Value);
+
+                     //Подгружаем последнюю страницу которую спарсили  
+                     //Если файла нет или он пустой, то стартовую страницу берём 10ю с края!
+                     if(!LUrl())
+                     {
+                         startPage = lastPage - 10;
+                         loger.WrireLog("Стартовая страница 10я c края: " + startPage +". Край: "+ lastPage);
+                     }
 
                     //Перебираем все стр. от начальной до последней
                     for (int i = startPage; i <= lastPage; i++)
@@ -108,13 +137,19 @@ namespace gosc.ProBot
                 }
                 catch (HttpRequestException e)
                 {
-                    outStatus(1);                    
-                    //Усыпляем поток
-                    Thread.Sleep(timer);
+                        loger.WrireLog(statusList[1]);
+
+                        //Усыпляем поток
+                        Thread.Sleep(timer);
                 }
                 catch (Exception e)
-                {                   
-                        frontStatusBlock.Dispatcher.Invoke(new Action(() => frontStatusBlock.Text +=  e.Message +" " + e.GetType()));
+                {
+                        loger.WrireLog("Сообщение с ошибкой: "+e.Message);
+                        loger.WrireLog("Тип ошибки: "+e.GetType());
+                        loger.WrireLog("Ссылка на решение: "+ e.HelpLink);
+                        loger.WrireLog("Имя решения: "+e.Source);
+                        loger.WrireLog("Метод вернувший исключение: " + e.TargetSite);
+
                         //Усыпляем поток
                         Thread.Sleep(timer);
                 }
@@ -127,12 +162,15 @@ namespace gosc.ProBot
 
         }
 
+        //Прлучение HTML стр.
         async Task<string> GetHtmlPage()
         {
             //Код стр.
             string source = null;
+
             //КЛиент
             HttpClient client = new HttpClient();
+
             //Скачиваем стр.
             var respose = await client.GetAsync(url);
             if (respose != null && respose.StatusCode == System.Net.HttpStatusCode.OK)
@@ -140,11 +178,15 @@ namespace gosc.ProBot
                 //Сохраняем и отдаём стр.
                 source = await respose.Content.ReadAsStringAsync();
             }
+
             return source;
         }
 
+        //Ф-ия самого парсера
         async Task<bool> ParseCode()
         {
+            int count = 0;
+
             //Флаг новизны
             bool flagAdd = false;
             var source = await GetHtmlPage();//Получаем HTML код
@@ -179,12 +221,14 @@ namespace gosc.ProBot
                     {
                         //Добавляем в базу
                         db.Add(new Repoz(match.ToString().Split('<')[0].Replace("\n", ""), false));
+                        count++;
                         //Поднимаем флаг уникальности
                         flagAdd = true;
                     }
                 }
             }
 
+            loger.WrireLog(statusList[4]+ count);
             return flagAdd;
         }
 

@@ -17,39 +17,42 @@ namespace gosc.ProBot
 {
     class Steam
     {
+        //Логрование в txt
+        Loger loger;
+
+        //Список сообщений
         private List<String> statusList = new List<string>()
             {
-            "Авторизация в Steam успешна",
-            "Загрузка Печенек",
-            "Подгрузка Steam Печенек успешна",
-            "Попытка авторизация в Steam помощи Печенек",
-            "Печеньки устарели. Введите логин, пароль и актуальный код для повторой авторизации",
-            "Работа над авторизацией",
-            "Авторизация в Steam не удалась. Проверьте лог, пасс и убедитесь в актуальном коде аутентификации",
-            "Сохраняем Печеньки",
-            "Файл с Печеньками Steam не найден. Авторизуйтесь.",
-            "Файл с Печеньками Steam пустой",
-            "Введите логин, пароль и актуальный код для повторой авторизации",
+           /*0 */ "Авторизация в Steam успешна",
+           /*1 */ "Загрузка Печенек",
+           /*2 */ "Подгрузка Steam Печенек успешна",
+           /*3 */ "Попытка авторизация в Steam помощи Печенек",
+           /*4 */ "Печеньки устарели. Введите логин, пароль и актуальный код для повторой авторизации",
+           /*5 */ "Работа над авторизацией",
+           /*6 */ "Авторизация в Steam не удалась. Проверьте лог, пасс и убедитесь в актуальном коде аутентификации",
+           /*7 */ "Сохраняем Печеньки",
+           /*8 */ "Файл с Печеньками Steam не найден. Авторизуйтесь.",
+           /*9 */ "Файл с Печеньками Steam пустой",
+           /*10 */ "Введите логин, пароль и актуальный код для повторой авторизации",
             };
-
-        private void outStatus(int statusCode)
-        {
-            frontStatusBlock.Text += "\n" + statusList[statusCode];
-        }
-
-        private TextBlock frontStatusBlock;
+        
         private IWebDriver wd;
-        public Steam(IWebDriver inDrive, TextBlock frontStatusBlock)
+
+        public Steam(IWebDriver inDrive, Loger loger)
         {
-            wd = inDrive;
-            this.frontStatusBlock = frontStatusBlock;
+            //Инициализация логера и wd
+            this.loger = loger;
+            wd = inDrive;            
         }         
 
+        //Авторизация в Steam по логину, пассу и коду
         public bool AuthorizationWithLogPass(string login, string password, string autcode)
         {
             //Переходим на стим
             wd.Navigate().GoToUrl("https://steamcommunity.com/login");
-            outStatus(5);
+
+            loger.WrireLog(statusList[5]);
+
             //Ищем поля логина, пароля и заполняем их
             var log = wd.FindElement(By.Id("steamAccountName"));
             var pas = wd.FindElement(By.Id("steamPassword"));
@@ -71,50 +74,68 @@ namespace gosc.ProBot
                 IWebElement butDiv = wd.FindElement(By.Id("login_twofactorauth_buttonset_entercode"));
                 var x = butDiv.FindElement(By.ClassName("auth_button_h3"));
                 x.Click();
+
+                //Устали, спип
                 Thread.Sleep(2000);
             }
             catch
             {
-                outStatus(6);
+                loger.WrireLog(statusList[6]);
+
                 return false;
             }                
             
-
+            //Вытаскиваем из Драйвера печеньки
             var cookiesFromWd = wd.Manage().Cookies.AllCookies;
+
             List<TmpCookie> cookieList =  new List<TmpCookie>();
+            
+            //Пихаем в список нужные нам печеньки
             foreach(var tmp in cookiesFromWd)
             {
+                //Закостылили свой класс печенек, ибо родной работает криво
                 TmpCookie t = new TmpCookie(tmp.Name,tmp.Value,tmp.Domain,tmp.Path,tmp.Expiry);
+
                 cookieList.Add(t);
             }
+            //Сохраняем печеньки на будущее
             File.WriteAllText("Cookes.json", JsonConvert.SerializeObject(cookieList, Formatting.Indented));
 
-            outStatus(7);
+            loger.WrireLog(statusList[7]);
+
             return true;
         }
 
+        //Попытка авторизоваться в стиме при помощи печенек
         public bool AuthorizationWithCookie()
         {
-            outStatus(3);
+            loger.WrireLog(statusList[3]);
+
+            //Проверяем существование файла с Печеньками
             if (!File.Exists("Cookes.json"))
             {
-                outStatus(8);
+                loger.WrireLog(statusList[8]);
+
                 return false;
             }
             else
             {
-                outStatus(1);
+                loger.WrireLog(statusList[1]);
+
                 //Грузим печеньки
                 List<TmpCookie> n = JsonConvert.DeserializeObject<List<TmpCookie>>(File.ReadAllText("Cookes.json"));
 
+                //Проверяем пустоту файла с печерьками
                 if (n == null || n.Count == 0)
                 {
-                    outStatus(9);
-                    outStatus(10);
+
+                    loger.WrireLog(statusList[9]);
+                    loger.WrireLog(statusList[10]);
+
                     return false;
                 }
 
-                outStatus(2);
+                loger.WrireLog(statusList[2]);
 
                 //Переходим в стим
                 wd.Navigate().GoToUrl("https://steamcommunity.com");                
@@ -128,19 +149,27 @@ namespace gosc.ProBot
 
                 //И снова переходим в стим
                 wd.Navigate().GoToUrl("https://steamcommunity.com");
+
+                //Чуть чуть устали и спим
                 Thread.Sleep(2000);
 
+
                 IWebElement elemForCheck;
+                //Проверяем авторизацию по наличию кнопки
                 try
                 {
-                    elemForCheck = wd.FindElement(By.Id("account_pulldown"));                    
-                    outStatus(0);
+                    elemForCheck = wd.FindElement(By.Id("account_pulldown"));
+                    loger.WrireLog(statusList[0]);
                 }
                 catch
                 {
-                    outStatus(4);
+                    //нЭма кнопки
+                    loger.WrireLog(statusList[4]);
+
                     return false;
                 }
+
+                //Есть кнопка
                 return true;
             }
         }

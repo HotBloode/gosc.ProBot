@@ -88,7 +88,7 @@ namespace gosc.ProBot
                 try
                 {                    
                     globalFlag = false;
-                        url = baseUrl + 1;
+                    url = baseUrl + 1;
                     //Получаем html страницу
                     var source = await GetHtmlPage();
                     var domParser = new HtmlParser();
@@ -137,7 +137,13 @@ namespace gosc.ProBot
                 }
                 catch (HttpRequestException e)
                 {
-                        loger.WrireLog(statusList[1]);
+                        loger.WrireLog("Сообщение с ошибкой: " + e.Message);
+                        loger.WrireLog("Тип ошибки: " + e.GetType());
+                        loger.WrireLog("Ссылка на решение: " + e.HelpLink);
+                        loger.WrireLog("Имя решения: " + e.Source);
+                        loger.WrireLog("Метод вернувший исключение: " + e.TargetSite);
+
+                        loger.WrireLog(statusList[0]);
 
                         //Усыпляем поток
                         Thread.Sleep(timer);
@@ -150,6 +156,8 @@ namespace gosc.ProBot
                         loger.WrireLog("Имя решения: "+e.Source);
                         loger.WrireLog("Метод вернувший исключение: " + e.TargetSite);
 
+
+                        loger.WrireLog(statusList[1]);
                         //Усыпляем поток
                         Thread.Sleep(timer);
                 }
@@ -198,13 +206,15 @@ namespace gosc.ProBot
             var list = new List<string>();
 
             //Парсим посты со стр.
-            var items = doc.QuerySelectorAll(".message-main");
+            var items = doc.QuerySelectorAll(".bbWrapper");
+
+           
             foreach (var item in items)
             {
                 list.Add(item.OuterHtml.Substring(10));
             }
             //Регулярка под коды
-            string x = @"(([A-Z]|\d){7,8}\s*(<br>|</div|</b>|\n))";
+            string x = @"(([A-Z]|\d){7,8}\s*(<br>|</div|</b>|\n|\s|,))";
             Regex regex = new Regex(x);
 
             MatchCollection matches;
@@ -212,10 +222,12 @@ namespace gosc.ProBot
             foreach (var mes in list)
             {
                 matches = regex.Matches(mes);
-
+                Console.WriteLine(matches.Count);
                 //Парсим регуляркой
                 foreach (var match in matches)
                 {
+                    
+                    int f = 0;
                     //Удаляем пробелы и всякие скобочки, а так же чекаем дубликаты
                     if (CheckDublicate(match.ToString().Split('<')[0].Replace("\n", "")))
                     {
@@ -227,8 +239,11 @@ namespace gosc.ProBot
                     }
                 }
             }
-
-            loger.WrireLog(statusList[4]+ count);
+            if(count!=0)
+            {
+                loger.WrireLog(statusList[4] + count);
+            }
+            
             return flagAdd;
         }
 

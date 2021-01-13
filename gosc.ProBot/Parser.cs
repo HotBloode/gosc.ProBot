@@ -225,14 +225,15 @@ namespace gosc.ProBot
                 Console.WriteLine(matches.Count);
                 //Парсим регуляркой
                 foreach (var match in matches)
-                {
-                    
-                    int f = 0;
+                {                    
+                   
+                    string code = ((match.ToString().Split('<')[0].Replace("\n", "")).Replace(",", "")).Replace(" ", "");
                     //Удаляем пробелы и всякие скобочки, а так же чекаем дубликаты
-                    if (CheckDublicate(match.ToString().Split('<')[0].Replace("\n", "")))
+                    if (CheckDublicate(code))
                     {
+                        
                         //Добавляем в базу
-                        db.Add(new Repoz(match.ToString().Split('<')[0].Replace("\n", ""), false));
+                        db.Add(new Repoz(code, false));
                         count++;
                         //Поднимаем флаг уникальности
                         flagAdd = true;

@@ -54,15 +54,15 @@ namespace gosc.ProBot
             loger.WrireLog(statusList[5]);
 
             //Ищем поля логина, пароля и заполняем их
-            var log = wd.FindElement(By.Id("steamAccountName"));
-            var pas = wd.FindElement(By.Id("steamPassword"));
+            var log = wd.FindElement(By.Id("input_username"));
+            var pas = wd.FindElement(By.Id("input_password"));
             log.SendKeys(login);
             pas.SendKeys(password);
 
             //Ищем кнопку и нажимаем на неё
-            var batt = wd.FindElement(By.Id("SteamLogin"));
+            var batt = wd.FindElement(By.ClassName("btn_blue_steamui"));
             batt.Click();
-            Thread.Sleep(2000);
+            Thread.Sleep(3000);
 
             //Ищем поле вводаждя кода и заполняем
             var code = wd.FindElement(By.Id("twofactorcode_entry"));
